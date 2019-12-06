@@ -1,0 +1,80 @@
+//Wordpress custom shortcode for querying users to show job title and photo
+
+if( !function_exists( 'get_author_headshots' ) ) {
+function get_author_headshots($atts) {
+    
+        $counter = 1;
+
+        $users = get_users(array(role => 'author', orderby => 'meta_value_num', meta_key => 'job_order'));
+        
+        $obj_id = get_queried_object_id();
+        $current_url = get_permalink( $obj_id );
+        
+        $current_author = str_replace('-', ' ', str_replace(['/our-team/', '/'], '', strstr($current_url, '/our-team/')));
+        
+        
+        foreach($users as $user){
+            $author = strtolower($user->display_name);
+            
+            if ($counter % 4 == 1) {
+                $output .= '<div class="tatsu-row-wrap  tatsu-wrap tatsu-row-has-four-cols tatsu-medium-gutter tatsu-reg-cols  tatsu-clearfix tatsu-CgEcWEHQKo-">';
+                $output .= '<div class="tatsu-row ">';
+            }
+            
+                $output .= '<div class="tatsu-column tatsu-bg-overlay tatsu-one-fourth tatsu-column-image-none tatsu-column-effect-none  tatsu-0UgkHa-k2a" data-parallax-speed="0" style="">';
+                $output .= '<div class="tatsu-column-inner ">';
+                $output .='<div class="tatsu-column-pad-wrap">';
+                $output .='<div class="tatsu-column-pad">';
+                
+                $output .='<div class="tatsu-single-image tatsu-module tatsu-image-lazyload tatsu-c3NJZXi78O">';
+            
+            if($author == $current_author){
+                
+                $output .='<div class="tatsu-single-image-inner " style="width : 400px; border-width: 10px; border-color: rgba(0,79,132,1); max-width: 100%;">';
+                 
+            }else{
+                $output .='<div class="tatsu-single-image-inner " style="width : 400px;">';
+                  
+            } 
+            
+            $output .='<div class="tatsu-single-image-padding-wrap" style="padding-bottom : 100%;">';
+            $output .='</div>';
+        
+            
+            $output .='<a href="/our-team'. str_replace('http://', '/', esc_url( $user->user_url )) . '">';
+            $output .='<img class="tatsu-gradient-border" alt=""  sizes="(max-width: 400px) 100vw, 400px" src="' . esc_url( get_avatar_url( $user->ID ) ) .'" style="opacity: 1;">';
+            $output .='</a>';
+            $output .='</div>';
+            
+            $output .='</div>';
+            
+            $job_title = get_field( "job_title", 'user_'. $user->ID );
+            
+            $output .='<div class="tatsu-module tatsu-text-block-wrap tatsu-2uAl9v0QUz">';
+            $output .='<div class="tatsu-text-inner tatsu-align-center  clearfix">';
+            $output .='<h3>'. $user->display_name .'</h3>';
+            $output .='<h4 style="line-height: .1em; display: inline;">'. $job_title .'</h4>';
+            $output .='</div>';
+            $output .='</div>';
+            
+            $output .='</div>';
+            $output .='</div>';
+            $output .= '</div>';
+            $output .= '</div>';
+            
+            if ($counter % 4 == 0) {
+                $output .= '</div>';
+                $output .= '</div>';
+            }
+            $counter++;
+        } 
+        
+        
+        /* Reset query */
+        wp_reset_postdata();
+ 
+        return $output;
+    }
+}
+
+add_shortcode('author_headshots', 'get_author_headshots');
