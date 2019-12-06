@@ -1,0 +1,99 @@
+// custom Wordpress shortcode to query authors and show the blog posts they have written
+
+if( !function_exists( 'get_author_posts' ) ) {
+function get_author_posts($atts) {
+    
+    global $post;
+    
+    
+    $user = $atts['author'];
+
+    $args = array(
+        'author'=> $user,
+        'posts_per_page' => 4,
+        );
+    
+    $the_query = new WP_Query( $args );
+    // The Loop
+    if ($the_query->have_posts()) :
+    
+        $output .= '<div id="homeblogroll" class="portfolio-all-wrap tatsu-module" style="margin-bottom: 0px; display:inline-block;">';
+        $output .= '<div class="portfolio full-screen full-screen-gutter style2-gutter four-col " data-gutter-width="30" style="margin-left: -30px;" data-col="four">';
+        $output .= '<div class="style3-blog portfolio-container clickable clearfix" style="position: relative; visibility: visible;">';
+
+ 
+        while ($the_query->have_posts()) : $the_query->the_post();
+ 
+            $output .= '<article id="post-' . get_the_ID() . '" class="element not-wide blog-post clearfix post type-post status-publish format-standard has-post-thumbnail hentry category-business-valuation category-news element not-wide no-parallax-effect">';
+            $output .= '<div class="element-inner" style="margin-left:30px">';
+            $output .= '<div class="post-content-wrap">';
+            
+			$output .= '<div class="post-thumb">';	
+            $output .= '<div class="">';        	
+            $output .= '<a href="' . esc_url( get_the_permalink() ) . '">';
+            $output .= '<img width="1160" height="700" src="' . esc_url(get_the_post_thumbnail_url(get_the_ID(),'thumb')) .'" class="attachment-blog-image size-blog-image wp-post-image" alt="">';			
+            $output .= '</a>';
+            $output .= '</div>';		
+            $output .= '</div>';            
+            
+            $output .= '<div class="article-details clearfix">';
+            
+            $output .= '<header class="post-header clearfix">';
+            $output .= '<h2 class="post-title">';
+            $output .= '<a href="' . esc_url( get_the_permalink() ) . '">' . get_the_title() . '</a>';
+            $output .= '</h2>';
+            $output .= '</header>';
+            
+            
+            $output .= '<div class="post-top-details clearfix">';
+            $output .= '<nav class="post-nav meta-font secondary_text">';
+            /* Uncomment to show the author
+           	$output .= '<ul class="clearfix">';
+       		$output .= '<li class="post-meta special-subtitle post-author">' . get_the_author() . '<span class="post-meta-sep"> </span></li>';
+        	$output .= '</ul>';
+            */
+           	$output .= '<ul class="clearfix">';
+            $output .= '<li class="post-meta">' . get_the_time( get_option( 'date_format' ) ) . '&nbsp;</li>';
+            
+            $categories = get_the_category();
+            $separator = ', ';
+            $cat = ' | ';
+            if ( ! empty( $categories ) ) {
+                foreach( $categories as $category ) {
+                    $cat .= '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '" alt="' . esc_attr( sprintf( __( 'View all posts in %s', 'textdomain' ), $category->name ) ) . '">' . esc_html( $category->name ) . '</a>' . $separator;
+                }
+                $output .= '<li class="post-categories">' . trim( $cat, $separator ) . '</li>';
+            }
+            
+        	$output .= '</ul>';
+            $output .= '</nav>';
+            $output .= '</div>';
+                                 
+
+            $output .= '</div>';
+            
+            $output .= '</div>';
+            $output .= '</div>';
+            $output .= '</article>';    
+            
+	
+        endwhile;
+        
+        $output .= '</div>';
+        $output .= '</div>';
+        $output .= '</div>';
+
+       /* Reset query */
+       wp_reset_postdata();
+ 
+    else :
+ 
+        $output = '<p>No posts found.</p>';
+ 
+    endif;
+ 
+ return $output;
+
+ }
+}
+add_shortcode('author_posts', 'get_author_posts');
