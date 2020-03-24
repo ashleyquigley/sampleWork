@@ -17,15 +17,15 @@ function get_author_posts($atts) {
     // The Loop
     if ($the_query->have_posts()) :
     
-        $output .= '<div id="homeblogroll" class="portfolio-all-wrap tatsu-module" style="margin-bottom: 0px; display:inline-block;">';
-        $output .= '<div class="portfolio full-screen full-screen-gutter style2-gutter four-col " data-gutter-width="30" style="margin-left: -30px;" data-col="four">';
-        $output .= '<div class="style3-blog portfolio-container clickable clearfix" style="position: relative; visibility: visible;">';
+        $output .= '<div id="homeblogroll" class="portfolio-all-wrap tatsu-module">';
+        $output .= '<div class="portfolio full-screen full-screen-gutter style2-gutter four-col " data-gutter-width="30" data-col="four">';
+        $output .= '<div class="style3-blog portfolio-container clickable clearfix">';
 
  
         while ($the_query->have_posts()) : $the_query->the_post();
  
             $output .= '<article id="post-' . get_the_ID() . '" class="element not-wide blog-post clearfix post type-post status-publish format-standard has-post-thumbnail hentry category-business-valuation category-news element not-wide no-parallax-effect">';
-            $output .= '<div class="element-inner" style="margin-left:30px">';
+            $output .= '<div class="element-inner">';
             $output .= '<div class="post-content-wrap">';
             
 			$output .= '<div class="post-thumb">';	
