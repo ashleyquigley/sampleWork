@@ -30,19 +30,19 @@ function get_author_headshots($atts) {
             
             if($author == $current_author){
                 
-                $output .='<div class="tatsu-single-image-inner " style="width : 400px; border-width: 10px; border-color: rgba(0,79,132,1); max-width: 100%;">';
+                $output .='<div class="tatsu-single-image-inner">';
                  
             }else{
-                $output .='<div class="tatsu-single-image-inner " style="width : 400px;">';
+                $output .='<div class="tatsu-single-image-inner">';
                   
             } 
             
-            $output .='<div class="tatsu-single-image-padding-wrap" style="padding-bottom : 100%;">';
+            $output .='<div class="tatsu-single-image-padding-wrap">';
             $output .='</div>';
         
             
             $output .='<a href="/our-team'. str_replace('http://', '/', esc_url( $user->user_url )) . '">';
-            $output .='<img class="tatsu-gradient-border" alt=""  sizes="(max-width: 400px) 100vw, 400px" src="' . esc_url( get_avatar_url( $user->ID ) ) .'" style="opacity: 1;">';
+            $output .='<img class="tatsu-gradient-border" alt="" src="' . esc_url( get_avatar_url( $user->ID ) ) .'" style="opacity: 1;">';
             $output .='</a>';
             $output .='</div>';
             
