@@ -1,0 +1,1062 @@
+app.controller('crashCtrl', [
+  '$scope', '$rootScope', 'crashService', 'googleMapsService', '$filter', '$timeout', function ($scope, $rootScope, crashService, googleMapsService, $filter, $timeout)
+  {
+
+    $scope.map = null;
+    $scope.markers = [];
+    $scope.animated = false;
+    $scope.vehicleSpeed = 0;
+    $scope.step = 0;
+    $scope.tick = 2; // milliseconds
+    $scope.nextAngle = 0;
+    $scope.currentImpact = 0;
+    $scope.pointOfImpact = 0;
+    $scope.numCrash = 1;
+
+    $scope.polyline;
+    $scope.poly2;
+    $scope.mainRoutePolyline = null;
+    $scope.mainPathCoords = [];
+    $scope.topLeftPolyline = null;
+    $scope.topRightPolyline = null;
+    $scope.bottomLeftPolyline = null;
+    $scope.bottomRightPolyline = null;
+
+    $scope.startLocation = 0;
+    $scope.endLocation = 0;
+
+    $scope.gForceHeight = 0;
+    $scope.gForceCircleWidth = 0;
+
+    $scope.speedLineDataArr = [];
+
+    $scope.lastVertex = 1;
+
+    $scope.speedLineChart;
+    $scope.speedLineData;
+    $scope.speedLineOptions = {};
+
+
+    $scope.initialize = function(idCrash) {
+
+      console.log("Init");
+
+      $scope.idCrash = idCrash;
+
+      google.charts.load('current', {packages: ['corechart', 'bar']});
+
+      $scope.initMap();
+      $scope.initPolyLines();
+      $scope.initGForce();
+
+      $scope.loadData($scope.idCrash);
+
+    };
+
+    $scope.initSpeedChart = function(){
+
+      var maxSpeed = Math.floor($scope.speedArray[0]);
+      var minSpeed = Math.floor($scope.speedArray[$scope.speedArray.length - 1]);
+
+      $scope.pointOfImpact = $scope.findTimeOfCrash();
+
+      //Speed Line chart
+      var maxTimeInLineChart = $scope.timeArray[$scope.timeArray.length-1] - $scope.pointOfImpact + 0.5;
+
+      $scope.speedLineOptions = {
+        title: 'Speed Chart',
+        vAxis: {
+          title: "Speed in miles",
+          viewWindowMode:'explicit',
+          viewWindow:{
+            max: maxSpeed+10,
+            min:0
+          },
+          gridlines: {
+            count: 6,
+            color:'transparent'
+          }
+        },
+        hAxis: {
+          title: "Time in sec",
+          viewWindowMode:'explicit',
+          viewWindow:{
+            max:maxTimeInLineChart
+          },
+          gridlines: {
+            count: 6,
+            color:'transparent'
+          }
+        },
+        curveType: 'function',
+        chartArea: {left: 50, top: 20, width: "70%", height: "70%"}
+
+      };
+
+    };
+
+    $scope.findTimeOfCrash = function() {
+      var pointOfImpact = 0;
+      for(var c = 0; c < $scope.isImpactArray.length - 1; c++) {
+        if($scope.isImpactArray[c] == 1) {
+          pointOfImpact = c;
+          break;
+        }
+      }
+      return $scope.timeArray[pointOfImpact];
+    };
+
+
+    $scope.resizeMap = function(thisMap, zoom){
+
+      google.maps.event.trigger(thisMap, 'resize');
+      thisMap.setZoom(zoom);
+      thisMap.setCenter(new google.maps.LatLng($scope.mainRouteArray[Math.floor($scope.mainRouteArray.length/2)][0], $scope.mainRouteArray[Math.floor($scope.mainRouteArray.length/2)][1]));
+
+    };
+
+
+    $scope.loadData = function (idCrash) {
+      $rootScope.loadingData = crashService.resconstruct(idCrash).then(function (r) {
+
+        if (r.data) {
+          console.log(r.data);
+          $scope.crash = r.data;
+
+          for (var k = 0; k < r.data.crashInfo[0].length; k++){
+            if($scope.idCrash == r.data.crashInfo[0][k].idCrash){
+              $scope.crashInfo = r.data.crashInfo[0][k];
+            }
+          }
+
+          $scope.mainRouteArray = $scope.crash.points;
+          $scope.speedArray = $scope.crash.speeds;
+          $scope.timeArray = $scope.crash.times;
+          $scope.isImpactArray = $scope.crash.impacts;
+          $scope.pitchAngleArray = $scope.crash.angles.pitch;
+          $scope.rollAngleArray = $scope.crash.angles.roll;
+          $scope.yawAngleArray = $scope.crash.angles.yaw;
+          $scope.impactAngleArray = $scope.crash.impactAngles;
+          //$scope.referenceAngle = $scope.crash.referneceAngles[0];
+          $scope.referenceAngle = 90;
+          $scope.intensities = $scope.crash.intensities;
+          $scope.accelerationXYArray = $scope.crash.accelerations;
+
+          $scope.max = $scope.mainRouteArray.length;
+          $scope.carPosition = 1;
+          $scope.accArray = [0];
+
+          var accel = 0;
+          for(var k=1; k <= $scope.speedArray.length; k++){
+            accel = $scope.speedArray[k] - $scope.speedArray[k-1];
+            if(accel > 0){
+              //acceleration
+              $scope.accArray.push(1);
+            }else if(accel < 0){
+              //braking
+              $scope.accArray.push(-1);
+            }else{
+              //constantSpeed
+              $scope.accArray.push(0);
+            }
+          }
+
+          try {
+            googleMapsService.reverseGeocoding($scope.crashInfo.latitude, $scope.crashInfo.longitude).then(function (ret) {
+              console.log(ret);
+              $scope.crashInfo.address= ret;
+              $scope.crashInfo.city = ret;
+              $scope.crashInfo.zip = ret;
+            });
+          }catch (e){
+            console.log(e);
+          }
+
+          $scope.loadRoute();
+          $scope.initSlider();
+          $scope.initSpeedChart();
+
+          $scope.registerWatches();
+
+        }
+
+      });
+    };
+
+
+    $scope.registerWatches = function(){
+
+      $scope.$watch("carPosition", function(d) {
+        $scope.moveCar(d);
+      });
+
+    };
+
+
+
+
+    $scope.moveCar = function(d){
+
+      //marker angle
+      var car = "M17.402,0H5.643C2.526,0,0,3.467,0,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759c3.116,0,5.644-2.527,5.644-5.644 V6.584C23.044,3.467,20.518,0,17.402,0z M22.057,14.188v11.665l-2.729,0.351v-4.806L22.057,14.188z M20.625,10.773 c-1.016,3.9-2.219,8.51-2.219,8.51H4.638l-2.222-8.51C2.417,10.773,11.3,7.755,20.625,10.773z M3.748,21.713v4.492l-2.73-0.349 V14.502L3.748,21.713z M1.018,37.938V27.579l2.73,0.343v8.196L1.018,37.938z M2.575,40.882l2.218-3.336h13.771l2.219,3.336H2.575z M19.328,35.805v-7.872l2.729-0.355v10.048L19.328,35.805z";
+      var rotationAngle = $scope.referenceAngle - $scope.yawAngleArray[d - 1] * 57.2958;
+      //marker angle
+      //zoom scaling
+      var zoom = $scope.map.getZoom();
+      var scaleForZoom = zoom * 0.0474;
+      if (zoom > 20) {
+        scaleForZoom = 1.7;
+      }
+      else if (zoom == 20) {
+        scaleForZoom = 1;
+      }
+      else if (zoom == 19) {
+        scaleForZoom = 0.9;
+      }
+      else if (zoom == 18) {
+        scaleForZoom = 0.8;
+      }
+      else if (zoom < 17) {
+        scaleForZoom = 0.5;
+      }
+      var icon = {
+        path: car,
+        scale: scaleForZoom,
+        strokeColor: 'black',
+        strokeWeight: 1,
+        fillOpacity: 1,
+        fillColor: '#404040',
+        offset: '5%',
+        rotation: rotationAngle,
+        // rotation: parseInt(heading[i]),
+        anchor: new google.maps.Point(13, 34) // orig 10,50 back of car, 10,0 front of car, 10,25 center of car
+      };
+
+      if (d > $scope.mainRouteArray.length - 1) {
+        var endPosition = {lat: $scope.endLocation.latlng[0], lng: $scope.endLocation.latlng[1]};
+        $scope.map.panTo(endPosition);
+        $scope.marker.setPosition(endPosition);
+
+        //marker angle
+        $scope.marker.setIcon(icon);
+        //updatePoly(d);
+        return;
+      }
+
+      var latlng = $scope.mainRouteArray[d];
+      var p = {lat: latlng[0], lng: latlng[1]};//polyline.GetPointAtDistance(d);
+      $scope.map.panTo(p);
+      $scope.marker.setPosition(p);
+      $scope.marker.setIcon(icon);
+
+      $scope.carPosition = d;
+
+      //$('#ex6 .slider-selection').css('background-color', $scope.getSpeedColor());
+
+
+    };
+
+
+    $scope.getACCColor = function(){
+
+      var acc = $scope.accArray[$scope.carPosition];
+
+      if(acc > 0){
+        //accel
+        return 'green';
+      }else if(acc < 0){
+        //brake
+        return 'darkred';
+      }else{
+        //constant
+        return 'green';
+      }
+
+    };
+
+
+    $scope.getSpeedColor = function(){
+
+      var speed = $scope.speedArray[$scope.carPosition];
+
+      if(speed > 80){
+        return 'darkred';
+      }else if(speed > 70) {
+        return 'darkred';
+      }else if(speed > 60){
+        return 'red';
+      }else if(speed > 50){
+        return 'red';
+      }else if(speed > 40){
+        return 'darkorange';
+      }else if(speed > 30){
+        return 'orange';
+      }else if(speed > 20){
+        return 'yellow';
+      }else if(speed > 20){
+        return 'darkgreen';
+      }else{
+        return 'green';
+      }
+
+    };
+
+    $scope.initMap = function() {
+
+      var myOptions = {
+        zoom: 19,
+        mapTypeId: google.maps.MapTypeId.SATELLITE,
+        styles:  [
+          {
+            featureType: "administrative",
+            elementType: "labels",
+            stylers: [
+              { visibility: "off" }
+            ]
+          },{
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [
+              { visibility: "off" }
+            ]
+          },{
+            featureType: "water",
+            elementType: "labels",
+            stylers: [
+              { visibility: "off" }
+            ]
+          },{
+            featureType: "road",
+            elementType: "labels",
+            stylers: [
+              { visibility: "off" }
+            ]
+          }
+        ]
+
+      };
+
+      $scope.map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+    };
+
+
+    $scope.createMarker = function(thisMap, latlng, label, html, index) {
+      var contentString = '<b>'+label+'</b><br>'+html;
+      var marker = new google.maps.Marker({
+        position: {lat: latlng[0], lng: latlng[1]},
+        map: thisMap,
+        animation: null,
+        title: label,
+        zIndex: Math.round(latlng[0]*-100000)<<5
+      });
+
+      var car = "M17.402,0H5.643C2.526,0,0,3.467,0,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759c3.116,0,5.644-2.527,5.644-5.644 V6.584C23.044,3.467,20.518,0,17.402,0z M22.057,14.188v11.665l-2.729,0.351v-4.806L22.057,14.188z M20.625,10.773 c-1.016,3.9-2.219,8.51-2.219,8.51H4.638l-2.222-8.51C2.417,10.773,11.3,7.755,20.625,10.773z M3.748,21.713v4.492l-2.73-0.349 V14.502L3.748,21.713z M1.018,37.938V27.579l2.73,0.343v8.196L1.018,37.938z M2.575,40.882l2.218-3.336h13.771l2.219,3.336H2.575z M19.328,35.805v-7.872l2.729-0.355v10.048L19.328,35.805z";
+      var rotationAngle =  $scope.referenceAngle - $scope.yawAngleArray[index] * 57.2958;
+      var zoom = thisMap.getZoom();
+      var scaleForZoom = zoom*0.0474;
+      if(zoom > 20) {
+        scaleForZoom = 1.8;
+      }
+      else if(zoom == 20) {
+        scaleForZoom = 1;
+      }
+      else if(zoom == 19) {
+        scaleForZoom = 0.9;
+      }
+      else if(zoom == 18) {
+        scaleForZoom = 0.8;
+      }
+      else if(zoom == 17) {
+        scaleForZoom = 0.7;
+      }
+      var icon = {
+        path: car,
+        scale: scaleForZoom,
+        strokeColor: 'black',
+        strokeWeight: 1,
+        fillOpacity: 1,
+        fillColor: '#404040',
+        offset: '5%',
+        rotation: rotationAngle,
+        anchor: new google.maps.Point(13, 33) // orig 10,50 back of car, 10,0 front of car, 10,25 center of car
+      };
+      marker.setIcon(icon);
+
+
+      marker.myname = label;
+
+      google.maps.event.addListener(marker, 'click', function() {
+        infowindow.setContent(contentString);
+        infowindow.open(thisMap,marker);
+      });
+
+
+      //when the map zoom changes, resize the icon based on the zoom level so the marker covers the same geographic area
+      google.maps.event.addListener(thisMap, 'zoom_changed', function() {
+        var zoom = thisMap.getZoom();
+
+        var scaleForZoom = zoom*0.0474;
+        if(zoom > 20) {
+          scaleForZoom = 1.5;
+        }
+        else if(zoom == 20) {
+          scaleForZoom = 1;
+        }
+        else if(zoom == 19) {
+          scaleForZoom = 0.9;
+        }
+        else if(zoom == 18) {
+          scaleForZoom = 0.8;
+        }
+        else if(zoom < 17) {
+          scaleForZoom = 0.5;
+        }
+        var iconZoom = {
+          path: car,
+          scale: scaleForZoom,
+          strokeColor: 'black',
+          strokeWeight: 1,
+          fillOpacity: 1,
+          fillColor: '#404040',
+          offset: '5%',
+          rotation: rotationAngle,
+          anchor: new google.maps.Point(13, 33) // orig 10,50 back of car, 10,0 front of car, 10,25 center of car
+        };
+        marker.setIcon(iconZoom);
+      });
+      return marker;
+    };
+
+
+    $scope.createCrashMarker = function(position, useMap){
+
+      var crashMarker = new google.maps.Marker({
+        map:useMap,
+        position: position,
+        draggable:false,
+        animation: google.maps.Animation.DROP,
+        icon: '/images/alertIcon6.png'
+      });
+
+      $scope.markers.push(crashMarker);
+
+    };
+
+    $scope.placeCrashMarkeronScale = function(){
+
+      var img = document.createElement("IMG");
+      img.src = "/images/alertIcon6.png";
+      img.height = "25";
+      img.width = "20";
+      img.style.top="20px";
+
+      var left = ($scope.carPosition / $scope.max) *100;
+      console.log("left " + left);
+
+      img.style.left = left+"%";
+
+      $('.ppm').prepend(img);
+
+      return $('#tag');
+
+    };
+
+
+    $scope.initPolyLines = function(){
+
+      $scope.polyline = new google.maps.Polyline({
+        path: [],
+        strokeColor: '#FF0000',
+        strokeWeight: 0
+      });
+
+      $scope.poly2 = new google.maps.Polyline({
+        path: [],
+        strokeColor: '#FF0000',
+        strokeWeight: 0
+      });
+
+      $scope.mainRoutePolyline = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#0000FF',
+        strokeOpacity: 1.0,
+        strokeWeight: 0.5
+      });
+
+      //Corner Polylines
+      $scope.topLeftPolyline = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#0000FF',
+        strokeOpacity: 1.0,
+        strokeWeight: 0.5
+      });
+
+      $scope.topRightPolyline = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#0000FF',
+        strokeOpacity: 1.0,
+        strokeWeight: 0.5
+      });
+
+      $scope.bottomLeftPolyline = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 0.5
+      });
+
+      $scope.bottomRightPolyline = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 0.5
+      });
+
+    };
+
+    $scope.resetMarkers = function(){
+      for (var i = 0; i < $scope.markers.length; i++) {
+        $scope.markers[i].setMap(null);
+      }
+      $scope.markers = [];
+    };
+
+
+    $scope.loadRoute = function(){
+
+      var bounds = new google.maps.LatLngBounds();
+      $scope.startLocation = new Object();
+      $scope.endLocation = new Object();
+
+      for (i=0;i<$scope.mainRouteArray.length;i++) {
+        if (i == 0) {
+          $scope.startLocation.latlng = $scope.mainRouteArray[i];
+        }
+        $scope.endLocation.latlng = $scope.mainRouteArray[$scope.mainRouteArray.length - 1];
+
+        var latlng = $scope.mainRouteArray[i];
+        var position = new google.maps.LatLng(latlng[0],latlng[1]);
+        $scope.polyline.getPath().push(position);
+        bounds.extend(position);
+      }
+
+      $scope.marker = $scope.createMarker($scope.map, $scope.mainRouteArray[0],"","", 0);
+
+      var mainCoordinate = $scope.mainRouteArray[0];
+      var mainLatLng = new google.maps.LatLng(mainCoordinate[0],mainCoordinate[1]);
+      $scope.mainRoutePolyline.getPath().push(mainLatLng);
+      $scope.mainRoutePolyline.setMap($scope.map);
+      $scope.topLeftPolyline.setMap($scope.map);
+      $scope.topRightPolyline.setMap($scope.map);
+      $scope.bottomLeftPolyline.setMap($scope.map);
+      $scope.bottomRightPolyline.setMap($scope.map);
+
+      /*
+      console.log(bounds);
+      $scope.polyline.setMap($scope.map);
+      $scope.map.panToBounds(bounds);
+      $scope.map.fitBounds(bounds);
+      $scope.map.setTilt(0);
+*/
+      //map.setZoom(19);
+
+      $scope.updateYawAnimation(0);
+      $scope.updateRollAnimation(0);
+      $scope.updatePitchAnimation(0);
+
+      $scope.vehicleSpeed = Math.floor($scope.speedArray[0]);
+      //$('#vehicleSpeed').html($scope.vehicleSpeed);
+
+    };
+
+    $scope.setVehicleSpeed = function(value){
+        if ( $scope.gaugeChart ) {
+          if ( $scope.gaugeChart.arrows ) {
+            if ( $scope.gaugeChart.arrows[ 0 ] ) {
+              if ( $scope.gaugeChart.arrows[ 0 ].setValue ) {
+                $scope.gaugeChart.arrows[ 0 ].setValue( value );
+                $scope.gaugeChart.axes[ 0 ].setBottomText( value + " mph" );
+              }
+            }
+          }
+        }
+    };
+
+
+
+    $scope.initSlider = function(){
+
+      //Slider
+      var slider;
+      var handle = $( "#custom-handle" );
+      var slideCounter;
+      $("#timeSlider").slider({
+        range: "max",
+        min: 0,
+        max: Math.floor($scope.timeArray[$scope.timeArray.length - 1]),
+        step: 1,
+        value: 0,
+        //disabled: true,
+        create: function() {
+          handle.text( Math.floor($scope.timeArray[0])) ;
+        },
+        start: function( event, ui ) {
+
+        },
+        slide: function(event, ui) {
+          if (event.originalEvent) {
+            clearTimeout(timerHandle);
+            var timeForSlider = Math.floor($scope.timeArray[ui.value]);
+            $("#timeSlider").slider("value", timeForSlider);
+          }
+
+          $("#timeSlider").on("slidechange",
+            function(event, ui) {
+
+              if (event.originalEvent) {
+                clearTimeout(timerHandle);
+                //event.originalEvent = null;
+                var pointIndex = $scope.timeArray.indexOf(ui.value);
+                slideAnimate(pointIndex);
+              }
+
+            });
+        }
+      });
+      //Slider End
+
+    };
+
+
+    $scope.initGForce = function(){
+
+
+      $scope.gForceHeight = $('.box .center').width();
+      $scope.gForceCircleWidth = $('.box .circle').width();
+
+
+      $('.box .center').css('height', $scope.gForceHeight);
+
+      $('.box .vertLine').css('width', $scope.gForceHeight/2);
+      $('.box .horizLine').css('height', $scope.gForceHeight/2);
+
+      $('.box .circle').css('top', $scope.gForceHeight/2 - $scope.gForceCircleWidth/2);
+      $('.box .circle').css('left', $scope.gForceHeight/2 - $scope.gForceCircleWidth/2);
+
+      $('.box .left').css('top', $scope.gForceHeight/2 - 10);
+      $('.box .right').css('top', $scope.gForceHeight/2 - 10);
+
+    };
+
+
+    $scope.startAnimation = function() {
+
+      $scope.initSpeedLineChart();
+
+      if($scope.animated == true){
+        $scope.resetAnimation();
+      }
+
+      setTimeout($scope.animate(1),2000);  // Allow time for the initial map display
+    };
+
+    $scope.initSpeedLineChart = function(){
+
+      $scope.speedLineDataArr.push(['Point', 'Speed', {'type': 'string', 'role': 'style'}]);
+      $scope.speedLineChart = new google.visualization.LineChart(document.getElementById('speed_line_div'));
+      $scope.gaugeChart = AmCharts.makeChart( "chartdiv", {
+        "type": "gauge",
+        "theme": "light",
+        "axes": [ {
+          "axisThickness": .5,
+          "axisAlpha": 0.2,
+          "tickAlpha": 0.2,
+          "valueInterval": 20,
+          "labelOffset": 1,
+          "backgroundAlpha": 1,
+          "backgroundColor": '#ffffff',
+          "bands": [ {
+            "color": "#84b761",
+            "endValue": 50,
+            "startValue": 0
+          }, {
+            "color": "#fdd400",
+            "endValue": 80,
+            "startValue": 50
+          }, {
+            "color": "#cc4748",
+            "endValue": 120,
+            "startValue": 80
+          } ],
+          "bottomText": "0 mph",
+          "bottomTextYOffset": 5,
+          "endValue": 120,
+          "fontSize": 9
+        } ],
+        "arrows": [     {
+          "startWidth": 2,
+
+        } ],
+        "export": {
+          "enabled": true
+        }
+      } );
+
+    };
+
+    $scope.resetAnimation = function(){
+
+      console.log("Reseting Animation");
+      $scope.currentImpact = 0;
+      $scope.nextAngle = 0;
+      $scope.speedLineDataArr = [];
+      $scope.mainRoutePolyline = null;
+      $scope.carPosition = 1;
+      $scope.initSpeedLineChart();
+      $scope.initPolyLines();
+      $scope.resetMarkers();
+      $scope.resetCrashTag();
+      $scope.animated = false;
+
+    };
+
+
+
+    $scope.animate = function(d) {
+
+      if($scope.speedArray[d] != null) {
+
+        $scope.vehicleSpeed = Math.floor($scope.speedArray[d]);
+        //$('#vehicleSpeed').html($scope.vehicleSpeed);
+        $scope.setVehicleSpeed($scope.vehicleSpeed);
+
+        $scope.calculateStep();
+
+        var crashRelativeTime = $scope.timeArray[d] - $scope.pointOfImpact;
+
+        if($scope.isImpactArray[d]){
+          console.log("Impact");
+
+          //Top view car
+          if($scope.isNewImpact($scope.isImpactArray[d])) {
+            console.log("New Impact");
+            $scope.moveCrashTagNew(d);
+            $scope.placeCrashMarkeronScale();
+
+            //Crash animation on Map
+            var crashCoordinate = $scope.mainRouteArray[d];
+            var crashPosition = new google.maps.LatLng(crashCoordinate[0],crashCoordinate[1]);
+            $scope.createCrashMarker(crashPosition, $scope.map);
+
+            $scope.speedLineDataArr.push([crashRelativeTime,$scope.vehicleSpeed,'point { size: 5; shape-type: circle; fill-color: #a52714; stroke-color: #a52714;}']);
+            $scope.speedLineOptions.pointSize = 1;
+          }
+
+        }
+        else {
+          $scope.speedLineDataArr.push([crashRelativeTime,$scope.vehicleSpeed,null]);
+        }
+
+        $scope.speedLineData = google.visualization.arrayToDataTable($scope.speedLineDataArr, false);
+        $scope.speedLineChart.draw($scope.speedLineData, $scope.speedLineOptions);
+
+      }
+      else {
+        $scope.step = 1;
+      }
+
+
+      $scope.moveCar(d);
+
+
+      //Draw main route polyline
+
+      var mainCoordinate = $scope.mainRouteArray[d-1];
+      var mainLatLng = new google.maps.LatLng(mainCoordinate[0], mainCoordinate[1]);
+
+      //Draw corner polylines
+      //Top-Left
+      var carDist = 1.2; // considering the distance from the center of the car to corner to be 2 meters
+      var topLeftBearing =  (90 - $scope.yawAngleArray[d-1] * 57.2958) + 300; // (90 - yawAngleArray[d-1] * 57.2958) YAW + 120 considering the car a rectangle
+      var topLeftCoordinates = $scope.findCornerLatLon(mainCoordinate[0], mainCoordinate[1], carDist, topLeftBearing);
+      var topLeftLatLng = new google.maps.LatLng(topLeftCoordinates[0], topLeftCoordinates[1]);
+      $scope.topLeftPolyline.getPath().push(topLeftLatLng);
+
+      //Top-Right
+      var topRightBearing =  (90 - $scope.yawAngleArray[d-1] * 57.2958) + 60; // (90 - yawAngleArray[d-1] * 57.2958) YAW + 120 considering the car a rectangle
+      var topRightCoordinates = $scope.findCornerLatLon(mainCoordinate[0], mainCoordinate[1], carDist, topRightBearing);
+      var topRightLatLng = new google.maps.LatLng(topRightCoordinates[0], topRightCoordinates[1]);
+      $scope.topRightPolyline.getPath().push(topRightLatLng);
+
+      //Bottom-Left
+      var bottomLeftBearing =  (90 - $scope.yawAngleArray[d-1] * 57.2958) + 240; // (90 - yawAngleArray[d-1] * 57.2958) YAW + 120 considering the car a rectangle
+      var bottomLeftCoordinates = $scope.findCornerLatLon(mainCoordinate[0], mainCoordinate[1], carDist, bottomLeftBearing);
+      var bottomLeftLatLng = new google.maps.LatLng(bottomLeftCoordinates[0], bottomLeftCoordinates[1]);
+      $scope.bottomLeftPolyline.getPath().push(bottomLeftLatLng);
+
+      //Bottom-Right
+      var bottomRightBearing =  (90 - $scope.yawAngleArray[d-1] * 57.2958) + 120; // (90 - yawAngleArray[d-1] * 57.2958) YAW + 120 considering the car a rectangle
+      var bottomRightCoordinates = $scope.findCornerLatLon(mainCoordinate[0], mainCoordinate[1], carDist, bottomRightBearing);
+      var bottomRightLatLng = new google.maps.LatLng(bottomRightCoordinates[0], bottomRightCoordinates[1]);
+      $scope.bottomRightPolyline.getPath().push(bottomRightLatLng);
+
+      //Draw corner polylines end
+
+      $scope.updatePoly(d);
+
+      //Slider
+      //var timeSlider = document.getElementById("timeSlider");
+      //timeSlider.value = timeArray[d];
+      var timeForSlider = Math.floor($scope.timeArray[d]);
+      $("#timeSlider").slider('value', timeForSlider);
+      var handle = $( "#custom-handle" );
+      handle.text(timeForSlider);
+
+      $scope.updateYawAnimation(d);
+      $scope.updateRollAnimation(d);
+      $scope.updatePitchAnimation(d);
+
+      $scope.updateGForce(d);
+
+
+      $("#timeSlider").slider('disable');
+      //Iterate Animation
+      if((d+$scope.step) <= $scope.speedArray.length) {
+        timerHandle = setTimeout(function() {
+          $scope.animate(d+$scope.step);  // You used `el`, not `element`?
+        }, $scope.tick);
+      }
+      else {
+        $("#timeSlider").slider('enable');
+      }
+
+      $scope.animated = true;
+      $scope.$apply();
+
+    };
+
+
+    $scope.updateGForce = function(d){
+      var gForceCoordinate = $scope.accelerationXYArray[d];
+
+      var gForceX = ($scope.gForceHeight/2) + (gForceCoordinate[0]/ ($scope.gForceHeight/2)) - ($scope.gForceCircleWidth/2);
+      var gForceY = ($scope.gForceHeight/2) - (gForceCoordinate[1]/ ($scope.gForceHeight/2)) - ($scope.gForceCircleWidth/2);
+
+
+      $('.box .circle').css('top', gForceY);
+      $('.box .circle').css('left', gForceX);
+    };
+
+
+    $scope.updateYawAnimation = function(d) {
+
+      //Top View Yaw Visualization
+      var yawAngleDeg = 90 - $scope.yawAngleArray[d] * 57.2958;
+      $('#car_top_yaw_Img').css('transform', 'rotate(' + yawAngleDeg + 'deg)');
+      $('#yaw_value').html(yawAngleDeg.toFixed(2));
+      $('#yaw_line').css('transform', 'rotate(' + yawAngleDeg + 'deg)');
+    };
+
+    $scope.updateRollAnimation = function(d){
+
+      //Front view Roll Visualization
+      var rollAngleDeg = $scope.rollAngleArray[d] * 57.2958;
+      $('#car_front_roll_Img').css('transform','rotate(' + rollAngleDeg + 'deg)');
+      $('#roll_value').html(rollAngleDeg.toFixed(2));
+
+    };
+
+
+    $scope.updatePitchAnimation = function(d){
+
+      //Side view Pitch Visualization
+      var pitchAngleDeg = $scope.pitchAngleArray[d] * 57.2958;
+      $('#car_side_pitch_Img').css('transform','rotate(' + pitchAngleDeg + 'deg)');
+      $('#pitch_value').html(pitchAngleDeg.toFixed(2));
+
+    };
+
+
+    $scope.calculateStep = function() {
+      if($scope.vehicleSpeed > 30) {
+        $scope.step = Math.floor($scope.vehicleSpeed/4)+2;
+      }
+      else {
+        $scope.step = 10;
+      }
+      if($scope.vehicleSpeed == 0) {
+        $scope.step = 20;
+      }
+    };
+
+
+    $scope.isNewImpact = function(impact){
+
+      if($scope.currentImpact == impact){
+        return false;
+      }else if($scope.currentImpact == !impact){
+        $scope.currentImpact = impact;
+        return true;
+      }else{
+        $scope.currentImpact = impact;
+        console.log("isNewImpact not accounted for");
+        return false;
+      }
+
+    };
+
+
+    $scope.moveCrashTagNew = function(id){
+
+      if($scope.impactAngleArray[0][$scope.nextAngle]){
+
+        var angle = $scope.impactAngleArray[0][$scope.nextAngle].impactAngle * (180/Math.PI);
+
+        var leftValue = 0;
+
+        var carWidth = $('#topViewCarImg').width();
+        var carHeight = $('#topViewCarImg').height();
+
+        console.log(angle);
+
+        var topValue;
+
+        //bottom right
+        if(angle >= - 45 && angle < 0) {
+          topValue = 100 - angle;
+          leftValue = carWidth;
+        }
+
+        //top right
+        else if(angle >= 0 && angle <= 45) {
+          topValue = 70 - angle;
+          leftValue = carWidth ;
+        }
+
+        //bottom left
+        else if((angle >= -180 && angle < -135)) {
+          topValue = 240 + angle;
+          leftValue = -30 ;
+        }
+
+        //top left
+        else if(angle >= 135 && angle < 180) {
+          topValue = angle - 150;
+          leftValue = -30 ;
+        }
+
+        //back
+        else if(angle == 180){
+          topValue = 60;
+          leftValue = -30 ;
+        }
+
+        //bottom
+        else if(angle >= -135 && angle < -45) {
+          topValue = carHeight;
+          leftValue = 200 + angle;
+        }
+
+        //top
+        else if(angle > 45 && angle < 135) {
+          topValue = -20;
+          leftValue = 200 - angle;
+        }else{
+          console.log("Angle Not found");
+        }
+
+        var elie = $scope.createCrashTag(id);
+
+        var tagSpan = $('#tagContainers')
+
+        // For webkit browsers: e.g. Chrome
+        elie.css({ WebkitTransform: 'rotate(' + -angle + 'deg)'});
+        // For Mozilla browser: e.g. Firefox
+        elie.css({ '-moz-transform': 'rotate(' + -angle + 'deg)'});
+
+        elie.css({ display: 'block'});
+
+        elie.css({top: topValue, left: leftValue});
+
+        $scope.nextAngle++;
+        $scope.numCrash++;
+      }
+    };
+
+
+    $scope.updatePoly = function(d) {
+      // Spawn a new polyline every 20 vertices, because updating a 100-vertex poly is too slow
+      if ($scope.poly2.getPath().getLength() > 20) {
+        $scope.poly2=new google.maps.Polyline([$scope.polyline.getPath().getAt($scope.lastVertex-1)]);
+      }
+
+      if (d < $scope.lastVertex+2) {
+        if ($scope.poly2.getPath().getLength()>1) {
+          $scope.poly2.getPath().removeAt($scope.poly2.getPath().getLength()-1);
+        }
+        $scope.poly2.getPath().insertAt($scope.poly2.getPath().getLength(),$scope.getPointAtIndex($scope.mainRouteArray, d));
+      } else {
+        var endPosition = {lat: $scope.endLocation.latlng[0], lng: $scope.endLocation.latlng[1]};
+        $scope.poly2.getPath().insertAt($scope.poly2.getPath().getLength(),endPosition);
+      }
+    };
+
+
+    $scope.createCrashTag = function(id){
+
+      var img = document.createElement("IMG");
+      img.src = "/images/left-pointing-arrow-64.png";
+      img.height = "30";
+      img.width = "30";
+      img.id = 'tag'+id;
+      img.class="crashTag";
+
+      var span = document.createElement("SPAN");
+      span.className = "tagSpan";
+      span.id = 'tagSpan'+id;
+      var text = document.createElement("SPAN");
+      text.className = "tagText";
+      text.append($scope.numCrash);
+      span.append(img);
+      span.append(text);
+
+      //$('#tagContainers').append(span);
+
+      return $('#tag'+id);
+
+    };
+
+    $scope.resetCrashTag = function(){
+      $('#tagContainers').empty();
+    };
+
+    $scope.findCornerLatLon = function(lat1,lon1,d,bearing) {
+      lat1 = lat1 * ( Math.PI / 180 );  //Only do this if you need to convert from deg. to dec.
+      lon1 = lon1 * ( Math.PI / 180 );  //Only do this if you need to convert from deg. to dec.
+//d = 2;
+      R = 6371000;//Earth's radius in meters
+      brng = bearing * ( Math.PI / 180 );
+      var lat2 = Math.asin( Math.sin( lat1 ) * Math.cos( d / R ) + Math.cos( lat1 ) * Math.sin( d / R ) * Math.cos( brng ) );
+      var lon2 = lon1 + Math.atan2( Math.sin( brng ) * Math.sin( d / R ) * Math.cos( lat1 ), Math.cos( d / R ) - Math.sin( lat1 ) * Math.sin( lat2 ) );
+
+      lat2 = lat2 * ( 180 / Math.PI );
+      lon2 = lon2 * ( 180 / Math.PI );
+      var latlngCorner = [lat2, lon2];
+      return latlngCorner;
+    };
+
+
+    $scope.getPointAtIndex = function(path, index) {
+      var point = path[index];
+      var ptLatLng = {lat: point[0], lng: point[1]};
+      return ptLatLng;
+    };
+
+  }
+]);
