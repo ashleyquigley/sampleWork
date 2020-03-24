@@ -1,35 +1,9 @@
 <!DOCTYPE html>
-<html ng-app="TryAndDriveApp">
+<html ng-app="DemoApp">
 <head>
-  <title>Surround</title>
-
-  <!--STYLES-->
-  <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js" nonce="64806B7A1B321C4BB6D3D0F3A7F82E21" charset="UTF-8"></script><script type="text/javascript" src="/ruxitagentjs_ICA2SVfqru_10173190807103944.js" data-dtconfig="rid=RID_-2115973659|rpid=-38277336|domain=octousa.com|reportUrl=/rb_759245ed-439b-408b-82e6-f057b1eafe31|app=ea7c4b59f27d43eb|featureHash=ICA2SVfqru|srsr=25000|rdnt=1|uxrgce=1|bp=2|srms=1,1,,,|uxrgcm=100,25,300,3;100,25,300,3|dpvc=1|lastModification=1567735257017|dtVersion=10173190807103944|tp=500,50,0,1|uxdcw=1500|agentUri=/ruxitagentjs_ICA2SVfqru_10173190807103944.js"></script><link rel="stylesheet" href="/styles/bootstrap.min.css">
-  <link rel="stylesheet" href="/font-awesome/css/font-awesome.css">
-  <link rel="stylesheet" href="/styles/octo-template.css">
-  <link rel="stylesheet" href="/styles/dashboard.css">
-  <link rel="stylesheet" href="/styles/menu.css">
-  <link rel="stylesheet" href="/styles/animate.css">
-  <link rel="stylesheet" href="/styles/tryanddrive.css">
-  <link rel="stylesheet" href="/styles/trips.css">
-  <link rel="stylesheet" href="/styles/events.css">
-  <link rel="stylesheet" href="/styles/custom.css">
-  <link rel="stylesheet" href="/styles/style.css">
-  <link rel="stylesheet" href="/styles/daterangepicker.css">
-  <link rel="stylesheet" href="/styles/angular-busy.min.css">
-  <link rel="stylesheet" href="/styles/bootstrap-slider.min.css">
-  <link rel="stylesheet" href="/styles/td_font.css">
-  <link rel="stylesheet" href="/styles/custom_icons.css">
-  <link rel="stylesheet" href="/styles/styles_v2.css">
-  <link rel="stylesheet" href="/styles/ng-table.css">
-  <link rel="stylesheet" href="/styles/fileinput.css">
-  <link rel="stylesheet" href="/styles/odometer.css">
-  <link rel="stylesheet" href="/styles/horizontalTicker.css">
-  <!--STYLES END-->
-
-
-  <link rel="stylesheet" type="text/css" media="print" href="/styles/print.css">
+  <title>Demo App</title>
 </head>
+
 <body class="fixed-sidebar no-sidebar" ng-init="toogle_sidebar=true"
       ng-class="{'no-sidebar':toogle_sidebar}">
 <div id="wrapper" ng-cloak>
@@ -55,7 +29,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="" href="#"> <img src="/images/surroundLogo.png" class="brand"></a>
+        <a class="" href="#"> <img src="/images/Logo.png" class="brand"></a>
       </div>
 
       <!-- Collect the nav links, forms, and other content for toggling -->
@@ -89,36 +63,10 @@
 
 
     <section id="centralContainer">
-     <nav class="navbar navbar-default mainColorBG" id="top-menu" style=" color:#fff;">
-  <div class="container-fluid">
-    <div style="width: 1000px; margin:0 auto;">
-
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav pageNav">
-          <li id="dashboard" >
-            <a href="/"> Dashboard </a>
-          </li>
-          <li id="trips" >
-            <a href="/trips"> Trips </a></li>
-          <li id="events" >
-            <a href="/events">Events </a></li>
-          <li id="trends" >
-            <a href="/trends">Trends </a></li>
-          <li id="health" >
-            <a href="/health"> Health </a>
-          </li>
-          <li id="settings" >
-            <a href="/settings"> Settings </a>
-          </li>
-        </ul>
-      </div><!-- /.navbar-collapse -->
-    </div>
-  </div><!-- /.container-fluid -->
-</nav>
 
       <div ng-controller="crashCtrl" class="crash" ng-init="initialize('49349')">
 
-    <div class="container-fluid" style="padding-top: 20px;">
+    <div class="container-fluid">
 
       <div class="row">
         <div class="col-md-8">
@@ -131,30 +79,30 @@
                   <hr/>
                   <div id="pitch_roll_yaw_wrapper">
                     <div id="car_side_pitch" class="col-md-4">
-                      <div class="row" style="padding-bottom:40px;text-align:center;">
+                      <div class="row">
                         <div class="col-md-6">Pitch</div>
                         <div  class="col-md-6" id="pitch_value"></div>
                       </div>
                       <div style="margin:0 auto;">
-                        <img src="/images/car_side_pitch_small.png" id="car_side_pitch_Img" style="background: white; width:100%; border-bottom: 1px solid red;"/>
+                        <img src="/images/car_side_pitch_small.png" id="car_side_pitch_Img"/>
                       </div>
                     </div>
                     <div id="car_front_roll" class="col-md-4">
-                      <div class="row" style="padding-bottom:40px;text-align:center;">
+                      <div class="row" >
                         <div class="col-md-6">Roll</div>
                         <div class="col-md-6" id="roll_value"></div>
                       </div>
-                      <div style="margin:0 auto;">
-                        <img src="/images/car_front_roll_small.png" id="car_front_roll_Img" style="background: white; width:100%; border-bottom: 1px solid red;"/>
+                      <div>
+                        <img src="/images/car_front_roll_small.png" id="car_front_roll_Img"/>
                       </div>
                     </div>
                     <div id="car_top_yaw" class="col-md-4">
-                      <div class="row" style="padding-bottom:20px;text-align:center;">
+                      <div class="row">
                         <div class="col-md-6">Yaw</div>
                         <div class="col-md-6" id="yaw_value"></div>
                       </div>
                       <div style="margin:0 auto;">
-                        <img src="/images/car_top_yaw.png" id="car_top_yaw_Img" style="padding: 0 40% 0;"/>
+                        <img src="/images/car_top_yaw.png" id="car_top_yaw_Img"/>
                       </div>
                     </div>
                   </div>
@@ -170,8 +118,8 @@
                   <h5>G-forces</h5>
                   <hr/>
                   <div class="box row">
-                    <div class="col-md-12" style="padding-bottom:10px;">Front</div>
-                    <div class="col-md-3 left" style="text-align:right;">Left</div>
+                    <div class="col-md-12">Front</div>
+                    <div class="col-md-3 left">Left</div>
                     <div class="col-md-6">
                       <div class="center">
                         <div class="vertLine"></div>
@@ -193,7 +141,7 @@
                   <div class="row">
                     <div class="col-md-12">
                       <h5>Speed</h5>
-                      <div style="position:relative;">
+                      <div>
                         <div id="chartdiv"></div>
                       </div>
                       <!--
@@ -202,7 +150,7 @@
                       </div>
                       -->
                       <hr/>
-                      <div id="speed_line_div" style="padding-top: 12px;"></div>
+                      <div id="speed_line_div"></div>
                     </div>
                   </div>
                 </div>
@@ -224,13 +172,13 @@
                   <div class="row">
                     <div class="col-md-12">Address: {{crashInfo.address}}</div>
                   </div>
-                  <div class="row" style="padding-top:10px;">
+                  <div class="row">
                     <div class="col-md-3">Crash Date: {{crashInfo.crashDate}}</div>
                     <div class="col-md-3">Time: {{crashInfo.crashTime}} (GMT0)</div>
                     <div class="col-md-3">Max Acceleration: {{crashInfo.maxAcc}}g</div>
                     <div class="col-md-3">Crash Grade: </div>
                   </div>
-                  <div class="row" style="padding-top:10px;">
+                  <div class="row">
                     <div class="col-md-3">Number of Impacts: {{crashInfo.totImpact}}</div>
                     <div class="col-md-3">Impact Speed: {{crashInfo.speed}} mph</div>
                     <div class="col-md-3">Whiplash Likelihood: </div>
@@ -248,11 +196,11 @@
             <div class="panel-body">
               <div class="row">
                 <div class="col-md-12">
-                  <h5>Map <input style="position: absolute;top: -5px; right: 16px;" ng-click="startAnimation()"  type="button" class="btn btn-primary" value="Reconstruct"></h5>
+                  <h5>Map <input ng-click="startAnimation()"  type="button" class="btn btn-primary" value="Reconstruct"></h5>
                   <hr/>
-                  <div id="map_canvas" style="height: 230px;"></div>
-                  <div class="ppm" style="padding: 40px 0px 0px;">
-                    <div class="speedo-container" style="width:98%; margin: 0 auto; position: relative;display: inline-block;">
+                  <div id="map_canvas"></div>
+                  <div class="ppm">
+                    <div class="speedo-container">
                       <span slider id="ex6" slider-tooltip="hide" handle="custom" sliderid="ex6" ng-Model="carPosition" value="1" step="1" min="1" max="max"></span>
                     </div>
                   </div>
@@ -279,12 +227,12 @@
                 Max Acceleration During Impacts
                 <div id="speedbottombox" class="accelerationScale">
                   <div class="">
-                    <div id="speedbox_value_wrapper" style="width: 100%;"> <a> 0 </a> <a> 2 </a> <a> 4 </a> <a> 6 </a> <a> 8 </a> <a> 10 </a> <a> 12 </a> <a> 14 </a><a style="text-align:right;width:0px;"> 16 </a>
+                    <div id="speedbox_value_wrapper"> <a> 0 </a> <a> 2 </a> <a> 4 </a> <a> 6 </a> <a> 8 </a> <a> 10 </a> <a> 12 </a> <a> 14 </a><a style="text-align:right;width:0px;"> 16 </a>
                       <div class="clear"></div>
-                      <div id="colorSpeedBar7" style="background-color: #7adc32; border-radius: 0px;" class="speedbox"></div>
-                      <div id="colorSpeedBar4" style="background-color: #517a33" class="speedbox"> </div>
-                      <div id="colorSpeedBar3" style="background-color: #e60000" class="speedbox"> </div>
-                      <div id="colorSpeedBar1" style="background-color: #931616; border-radius: 0px;" class="speedbox"></div>
+                      <div id="colorSpeedBar7" class="speedbox"></div>
+                      <div id="colorSpeedBar4" class="speedbox"></div>
+                      <div id="colorSpeedBar3" class="speedbox"> </div>
+                      <div id="colorSpeedBar1" class="speedbox"></div>
                     </div>
                     <div class="clear"></div>
                   </div>
@@ -293,15 +241,9 @@
               -->
             </div>
           </div>
-
-
         </div>
       </div>
-
     </div>
-
-
-
 
     <!--<div id="gauge_div"></div>-->
     <div id="event_intensity_div" style="display:none;"></div>
@@ -313,8 +255,6 @@
   </div>
 
 </div>
-
-      <!-- script fabio modal -->
       
 <div id="myModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -326,17 +266,7 @@
         <h4 class="modal-title">Odometer</h4>
       </div>
       <div class="modal-body-odometer" style="text-align:justify">
-
-      The odometer value is read directly from your vehicle&#39;s OBDII Port and should be the same as the display in your vehicle&#39;s gauge.
-        <br>
-        <br>
-         Please note:
-        <br>
-        <br>
-        • It may take several days for our systems to update this value.
-        <br>
-        •  In certain vehicles, odometer information is not available and the value will be displayed as &quot;0&quot;.
-
+      {{description}}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -345,220 +275,6 @@
 
   </div>
 </div>
-
-
-
-      <!-- fine modal-->
-
-    </section>
-    <!-- <div class="footer fixed" ng-controller="footerCtrl">
-  <input type="hidden" value="is the world&#39;s largest telematics service provider with millions of active drivers from some of the world&#39;s largest insurance partners." name="modalMessageWhat" id="modalMessageWhat" />
-  <input type="hidden" value=" Octo specializes in building turnkey, bespoke insurance telematics products based on the specific needs of our customers. We offer:" name="modalMessageOffer" id="modalMessageOffer" />
-  <input type="hidden" value="Custom Web Site/Mobile App, Scoring/Driver Behavior Evaluation" name="modalMessageCustomWeb" id="modalMessageCustomWeb" />
-  <input type="hidden" value="Safety, Security, and Value Added Services" name="modalMessageSafety" id="modalMessageSafety" />
-  <input type="hidden" value="Crash Management" name="modalMessageCrashManagement" id="modalMessageCrashManagement" />
-  <input type="hidden" value="Multiple Hardware/Application Choices" name="modalMessageHardware" id="modalMessageHardware" />
-  <input type="hidden" value="Email Services" name="modalMessageServices" id="modalMessageServices" />
-  <input type="hidden" value="Full Logistics Services" name="modalMessageLogistics" id="modalMessageLogistics" />
-  <input type="hidden" value="Octo&#39;s experience integrating services, devices, and applications is unmatched..." name="modalMessageapplications" id="modalMessageapplications" />
-  <input type="hidden" value="Let us know how we can help you to enhance your UBI product!" name="modalMessageproduct" id="modalMessageproduct" />
-
-  <div id="footercontainer" class="footer_blueline">
-        <div id="footer_logo">
-            <div id="sottotitolo">The reliable way</div>
-            <img id="octo_icon" src="/images/octo833c.png" />
-        </div>
-
-        <div id="navfoo">
-            <ul>
-                <li class="menuFooter">
-                    <a href="javascript:;" ng-click="modal_footer()">What is Octo Surround</a>
-                </li>
-                <li class="menuFooter">
-                    <a href="https://www.octousa.com/" target="_blank">Who We Are</a>
-                </li>
-                <li class="menuFooter" style="margin-left:-50px;">
-                    <a href="/faq">FAQ</a>
-                </li>
-                <li class="menuFooter" style="margin-left:-50px;">
-                    <a href="https://www.octousa.com/contact/" target="_blank">Contact Us</a>
-                </li>
-            </ul>
-        </div>
-
-    </div>
-</div>
- -->
-  </div>
-</div>
-
-
-<!-- Piwik -->
-<script type="text/javascript">
-  var _paq = _paq || [];
-  var trackUser="Debbie"+ " Osiel" + " - 20046753";
-  console.log(trackUser);
-  _paq.push(['setUserId', trackUser]);
-  _paq.push(["setDomains", ["*.octosurround.com"]]);
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="//octo_telematics.piwikpro.com/";
-    _paq.push(['setTrackerUrl', u+'piwik.php']);
-    _paq.push(['setSiteId', 13]);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<noscript><p><img src="//octo_telematics.piwikpro.com/piwik.php?idsite=13" style="border:0;" alt="" /></p></noscript>
-<!-- End Piwik Code -->
-
-<!--<script type="text/javascript" src="https://maps.google.com/maps/api/js?libraries=places"></script>-->
-<!--<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.exp&libraries=places&language=en"></script>-->
-<!--<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.exp&client=gme-octotelematicsnorth&libraries=geometry,places,visualization&language=en"></script>-->
-<!--<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.exp&libraries=geometry,places,visualization&language=en&key=AIzaSyD1lN2OZ3peOlSY7XxjdUDe5cFqRddTVMc"></script>-->
-<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.31&client=gme-octotelematicsnorth&libraries=geometry,places,visualization&language=en"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<!--<script
-  src="https://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerwithlabel/src/markerwithlabel.js"></script>
-<script
-  src="https://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js"></script>-->
-
-<!-- Resources -->
-<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-<script src="https://www.amcharts.com/lib/3/gauge.js"></script>
-<script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
-<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-
-<script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-
-
-<!--SCRIPTS_VENDORS-->
-<script src="/js/vendors/jquery-2.1.1.min.js"></script>
-<script src="/js/vendors/jquery-ui.min.js"></script>
-<script src="/js/vendors/bootstrap.min.js"></script>
-<script src="/js/vendors/angular.min.js"></script>
-<script src="/js/vendors/moment.min.js"></script>
-<script src="/js/vendors/highcharts.min.js"></script>
-<script src="/js/vendors/angular-busy.min.js"></script>
-<script src="/js/vendors/bootstrap-slider.min.js"></script>
-<script src="/js/vendors/daterangepicker.js"></script>
-<script src="/js/vendors/fileinput.js"></script>
-<script src="/js/vendors/fleet_app.js"></script>
-<script src="/js/vendors/gauge.js"></script>
-<script src="/js/vendors/generaloption.js"></script>
-<script src="/js/vendors/heatmap.js"></script>
-<script src="/js/vendors/highcart-exporting-ofline.min.js"></script>
-<script src="/js/vendors/highcart-exporting.min.js"></script>
-<script src="/js/vendors/jCProgress-1.0.3.js"></script>
-<script src="/js/vendors/jquery.metisMenu.js"></script>
-<script src="/js/vendors/jquery.slimscroll.min.js"></script>
-<script src="/js/vendors/markerclusterer.js"></script>
-<script src="/js/vendors/markerswithlabel.js"></script>
-<script src="/js/vendors/ng-table.min.js"></script>
-<script src="/js/vendors/ng-toggle-btn.js"></script>
-<script src="/js/vendors/ocLazyLoad.min.js"></script>
-<script src="/js/vendors/odometer.js"></script>
-<script src="/js/vendors/pace.min.js"></script>
-<script src="/js/vendors/slider.js"></script>
-<script src="/js/vendors/sly.min.js"></script>
-<script src="/js/vendors/ui-bootstrap-0.14.3.min.js"></script>
-<!--SCRIPTS_VENDORS END-->
-
-<!--SCRIPTS-->
-<script src="/js/app/app.js"></script>
-<script src="/js/app/controllers/addDriverCtrl.js"></script>
-<script src="/js/app/controllers/confirmModalCtrl.js"></script>
-<script src="/js/app/controllers/crashCtrl.js"></script>
-<script src="/js/app/controllers/curfew/curfewAddCtrl.js"></script>
-<script src="/js/app/controllers/curfew/curfewEditCtrl.js"></script>
-<script src="/js/app/controllers/curfew/curfewListCtrl.js"></script>
-<script src="/js/app/controllers/dashboardCtrl.js"></script>
-<script src="/js/app/controllers/details/detailsBehavior.js"></script>
-<script src="/js/app/controllers/details/detailsEventsCtrl.js"></script>
-<script src="/js/app/controllers/details/detailsIdle.js"></script>
-<script src="/js/app/controllers/details/detailsNightDays.js"></script>
-<script src="/js/app/controllers/details/detailsRoad.js"></script>
-<script src="/js/app/controllers/details/detailsTimeJourneyCtrl.js"></script>
-<script src="/js/app/controllers/details/detailsTripsCtrl.js"></script>
-<script src="/js/app/controllers/details/detailsVehicleAlarms.js"></script>
-<script src="/js/app/controllers/details/detailsVehicleStatus.js"></script>
-<script src="/js/app/controllers/details/detailsWeekJourneyCtrl.js"></script>
-<script src="/js/app/controllers/details/detailsWeekandDay.js"></script>
-<script src="/js/app/controllers/editDriverCtrl.js"></script>
-<script src="/js/app/controllers/editUserCtrl.js"></script>
-<script src="/js/app/controllers/editVehicleCtrl.js"></script>
-<script src="/js/app/controllers/eventsCtrl.js"></script>
-<script src="/js/app/controllers/filterCtrl.js"></script>
-<script src="/js/app/controllers/footerCtrl.js"></script>
-<script src="/js/app/controllers/geofence/geofenceAddCtrl.js"></script>
-<script src="/js/app/controllers/geofence/geofenceEditCtrl.js"></script>
-<script src="/js/app/controllers/geofence/geofenceListCtrl.js"></script>
-<script src="/js/app/controllers/group/groupAddCtrl.js"></script>
-<script src="/js/app/controllers/group/groupEditCtrl.js"></script>
-<script src="/js/app/controllers/headerMenuCtrl.js"></script>
-<script src="/js/app/controllers/healthCtrl.js"></script>
-<script src="/js/app/controllers/lastPositionCtrl.js"></script>
-<script src="/js/app/controllers/listDriverCtrl.js"></script>
-<script src="/js/app/controllers/listGroupCtrl.js"></script>
-<script src="/js/app/controllers/listGroupDriverCtrl.js"></script>
-<script src="/js/app/controllers/listGroupManagerCtrl.js"></script>
-<script src="/js/app/controllers/listGroupVoucherCtrl.js"></script>
-<script src="/js/app/controllers/listManagerCtrl.js"></script>
-<script src="/js/app/controllers/listUserCtrl.js"></script>
-<script src="/js/app/controllers/listVehicleCtrl.js"></script>
-<script src="/js/app/controllers/mapsCtrl.js"></script>
-<script src="/js/app/controllers/mapsDetail.js"></script>
-<script src="/js/app/controllers/modalCrashCtrl.js"></script>
-<script src="/js/app/controllers/modalCrashDetailCtrl.js"></script>
-<script src="/js/app/controllers/modalHealthCtrl.js"></script>
-<script src="/js/app/controllers/passwordCtrl.js"></script>
-<script src="/js/app/controllers/settingsCtrl.js"></script>
-<script src="/js/app/controllers/sidebarCtrl.js"></script>
-<script src="/js/app/controllers/terminalEventCtrl.js"></script>
-<script src="/js/app/controllers/topMenuCtrl.js"></script>
-<script src="/js/app/controllers/trendCtrl.js"></script>
-<script src="/js/app/controllers/tripsCtrl.js"></script>
-<script src="/js/app/controllers/twitterCtrl.js"></script>
-<script src="/js/app/controllers/utilitiesCtrl.js"></script>
-<script src="/js/app/controllers/utilitiesListCtrl.js"></script>
-<script src="/js/app/datetimepicker/drver_date.js"></script>
-<script src="/js/app/datetimepicker/range_picker.js"></script>
-<script src="/js/app/datetimepicker/range_picker_week.js"></script>
-<script src="/js/app/datetimepicker/single_date_picker.js"></script>
-<script src="/js/app/directives/highcarts.js"></script>
-<script src="/js/app/directives/maps.js"></script>
-<script src="/js/app/directives/progress.js"></script>
-<script src="/js/app/factories/crashService.js"></script>
-<script src="/js/app/factories/curfewService.js"></script>
-<script src="/js/app/factories/dashboardService.js"></script>
-<script src="/js/app/factories/detailsService.js"></script>
-<script src="/js/app/factories/driverService.js"></script>
-<script src="/js/app/factories/eventService.js"></script>
-<script src="/js/app/factories/fleetMapService.js"></script>
-<script src="/js/app/factories/fleetService.js"></script>
-<script src="/js/app/factories/geofenceService.js"></script>
-<script src="/js/app/factories/googleMapsService.js"></script>
-<script src="/js/app/factories/healthService.js"></script>
-<script src="/js/app/factories/listGroupService.js"></script>
-<script src="/js/app/factories/listGroupVoucherService.js"></script>
-<script src="/js/app/factories/listManagerService.js"></script>
-<script src="/js/app/factories/listUserService.js"></script>
-<script src="/js/app/factories/mapsService.js"></script>
-<script src="/js/app/factories/mapsServiceFleetMap.js"></script>
-<script src="/js/app/factories/mapsServiceGeofence.js"></script>
-<script src="/js/app/factories/placeService.js"></script>
-<script src="/js/app/factories/profileService.js"></script>
-<script src="/js/app/factories/terminalEventService.js"></script>
-<script src="/js/app/factories/trendsService.js"></script>
-<script src="/js/app/factories/tripsService.js"></script>
-<script src="/js/app/factories/twitterService.js"></script>
-<script src="/js/app/factories/utilitiesService.js"></script>
-<script src="/js/app/factories/vehicleService.js"></script>
-<!--SCRIPTS END-->
-
-
 
 </body>
 </html>
